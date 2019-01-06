@@ -16,14 +16,7 @@
 #define MUCOM_DEFAULT_PCMFILE "mucompcm.bin"
 #define MUCOM_DEFAULT_VOICEFILE "voice.dat"
 
-#define MUCOM_CH_FM1 0
-#define MUCOM_CH_PSG 3
-#define MUCOM_CH_FM2 6
-#define MUCOM_CH_RHYTHM 9
-#define MUCOM_CH_ADPCM 10
 #define MUCOM_MAXCH 11				// 最大ch(固定)
-
-#define MUCOM_CHDATA_SIZE 64		// chデータのサイズ
 #define MUCOM_LINE_MAXSTR 512		// 1行あたりの最大文字数
 #define MUCOM_FILE_MAXSTR 512		// ファイル名の最大文字数
 
@@ -57,6 +50,11 @@
 #define MUCOM_BASICSIZE_MAX 0x6000
 
 
+#define MUCOM_CMPOPT_USE_EXTROM 1
+#define MUCOM_CMPOPT_COMPILE 2
+#define MUCOM_CMPOPT_STEP 8
+#define MUCOM_CMPOPT_INFO 0x100
+
 //	MUBHED structure
 //
 typedef struct
@@ -74,54 +72,6 @@ typedef struct
 	short jumpline;		// Jump line number (for skip)
 } MUBHED;
 
-//	PCHDATA structure
-//
-typedef struct
-{
-	//	Player Channel Data structure
-	//
-	int length;				// LENGTH ｶｳﾝﾀｰ		IX + 0
-	int vnum;				// ｵﾝｼｮｸ ﾅﾝﾊﾞｰ		1
-	int wadr,wadr2;			// DATA ADDRES WORK	2, 3
-	int tadr, tadr2;		// DATA TOP ADDRES	4, 5
-	int volume;				// VOLUME DATA		6
-	int alg;				// ｱﾙｺﾞﾘｽﾞﾑ No.		7
-	int chnum;				// ﾁｬﾝﾈﾙ ﾅﾝﾊﾞｰ     	8
-	int detune, dtmp;		// ﾃﾞﾁｭｰﾝ DATA		9, 10
-	int tllfo;				// for TLLFO		11
-	int reverb;				// for ﾘﾊﾞｰﾌﾞ		12
-	int d1, d2, d3, d4, d5;
-							// SOFT ENVE DUMMY	13 - 17
-	int quantize;			// qｵﾝﾀｲｽﾞ		18
-	int lfo_delay;			// LFO DELAY		19
-	int work1;				// WORK			20
-	int lfo_counter;		// LFO COUNTER		21
-	int work2;				// WORK			22
-	int lfo_diff, ldtmp;	// LFO ﾍﾝｶﾘｮｳ 2BYTE	23, 24
-	int work3, work4;		// WORK			25, 26
-	int lfo_peak;			// LFO PEAK LEVEL	27
-	int work5;				// WORK			28
-	int fnum1;				// FNUM1 DATA		29
-	int fnum2;				// B / FNUM2 DATA		30
-	int flag;				
-							// bit 7 = LFO FLAG	31
-							// bit 6 = KEYOFF FLAG
-							// bit 5 = LFO CONTINUE FLAG
-							// bit 4 = TIE FLAG
-							// bit 3 = MUTE FLAG
-							// bit 2 = LFO 1SHOT FLAG
-							// bit 0,1 = LOOPEND FLAG
-
-	int code;				// BEFORE CODE		32
-	int flag2;				// bit 6 = TL LFO FLAG     33
-							// bit 5 = REVERVE FLAG
-							// bit 4 = REVERVE MODE
-	int retadr1, retadr2;	// ﾘﾀｰﾝｱﾄﾞﾚｽ	34, 35
-	int pan, empty;			// 36, 37 (ｱｷ) = 代わりにpan dataを入れている
-
-} PCHDATA;
-
-
 //
 //	CMucom.cpp functions
 //
@@ -132,13 +82,21 @@ public:
 	CMucom();
 	~CMucom();
 
-	void Init(void *window=NULL, int option=0);
+	void Init(void *window=NULL, int option=0,int Rate=0);
 	void Reset(int option=0);
 
 	int Play(int num=0);
+	void PlayMemory();
 	int Stop(int option=0);
 	int Fade(void);
 	int PlayEffect(int num=0);
+
+	void PlayLoop();
+
+	void RenderAudio(void *mix, int size);
+	void UpdateTime(int tick_ms);
+
+
 
 	int LoadPCM(const char *fname= MUCOM_DEFAULT_PCMFILE);
 	int LoadFMVoice(const char *fname = MUCOM_DEFAULT_VOICEFILE);
@@ -170,9 +128,11 @@ public:
 	void SetVolume(int fmvol, int ssgvol);
 	void SetFastFW(int value);
 
-	int GetChannelData(int ch, PCHDATA *result);
-
 private:
+	// オーディオ
+	double AudioStep;
+	double AudioLeftMs;
+
 	//		Settings
 	//
 	int	flag;			// flag (0=none/1=active)

@@ -10,12 +10,14 @@
 #include <string.h>
 #include <ctype.h>
 
-#include "windows.h"
 #include "cmucom.h"
 
 //#define DEBUG_MUCOM
 
 #define DEFAULT_OUTFILE "mucom88.mub"
+
+#define RENDER_RATE 44100
+#define RENDER_SECONDS 90
 
 /*----------------------------------------------------------*/
 
@@ -31,11 +33,86 @@ static 	char *p[] = {
 	"       -e Use external ROM files",
 	"       -s Use SCCI device",
 	"       -k Skip PCM load",
+	"       -x Record WAV file",
+	"       -l [n] Set Recording lengh to n seconds ",
 	NULL };
 	int i;
 	for (i = 0; p[i]; i++) {
 		printf("%s\n", p[i]);
 	}
+}
+
+void WriteWORD(unsigned char *p, unsigned short v) {
+    p[0] = (v & 0xff);
+    p[1] = ((v>>8) & 0xff);
+}
+
+void WriteDWORD(unsigned char *p, unsigned long v) {
+    p[0] = (v & 0xff);
+    p[1] = ((v>>8) & 0xff);
+    p[2] = ((v>>16) & 0xff);
+    p[3] = ((v>>24) & 0xff);
+}
+
+
+// WAVヘッダ出力
+void WriteWavHeader(FILE *fp, int frequency, int bits, int channels, long samples) {
+  if (!fp) return;
+  unsigned char hdr[0x80];
+  int bytes = (bits/8);
+  long pcm_bytesize = samples * channels * bytes;
+
+  memcpy(hdr,"RIFF", 4);
+  WriteDWORD(hdr + 4, pcm_bytesize + 44);
+  memcpy(hdr + 8,"WAVEfmt ", 8);
+  WriteDWORD(hdr + 16, 16); // chunk length
+  WriteWORD(hdr + 20, 01); // pcm id
+  WriteWORD(hdr + 22, channels); // ch
+  WriteDWORD(hdr + 24, frequency); // freq
+  WriteDWORD(hdr + 28, frequency * channels * bytes); // bytes per sec
+  WriteWORD(hdr + 32, channels * bytes); // bytes per frame
+  WriteWORD(hdr + 34, bits); // bits
+
+  memcpy(hdr + 36, "data",4);
+  WriteDWORD(hdr + 40, pcm_bytesize); // pcm size
+
+  // 先頭のヘッダを更新
+  fseek(fp, 0, SEEK_SET);
+  fwrite(hdr, 44, 1, fp);
+
+  // ファイルポインタを末尾に戻す
+  fseek(fp, 0, SEEK_END);
+}
+
+void RecordWave(CMucom *m, int seconds) {
+	int buf[512];
+	short out[512];
+
+	int rate = RENDER_RATE;
+	int bits = 16;
+	int channels = 2;
+	long total_samples = 0;
+
+	FILE *fp = fopen("output.wav","wb");
+	if (fp == NULL) return;
+
+	WriteWavHeader(fp, rate, bits, channels, total_samples);
+
+	long ms = 0;
+	while(total_samples < RENDER_RATE * seconds) {
+		int samples = 16;
+		m->RenderAudio(buf, samples);
+
+		for(int i=0; i < samples*2; i++) {
+			int v=buf[i];
+			out[i] = v > 32767 ? 32767 : (v < -32768 ? -32768 : v);
+		}
+		fwrite(out, samples*4, 1, fp);
+		total_samples += samples;
+	}
+
+	WriteWavHeader(fp, rate, bits, channels, total_samples);
+	fclose(fp);
 }
 
 /*----------------------------------------------------------*/
@@ -90,7 +167,9 @@ int main( int argc, char *argv[] )
 	outfile = DEFAULT_OUTFILE;
 	voicefile = NULL;
 	fname[0] = 0;
-	
+
+	int song_length = RENDER_SECONDS;
+
 	for (b=1;b<argc;b++) {
 		a1=*argv[b];a2=tolower(*(argv[b]+1));
 		if (a1!='-') {
@@ -107,6 +186,9 @@ int main( int argc, char *argv[] )
 			case 'o':
 				outfile = argv[b + 1]; b++;
 				break;
+			case 'l':
+				song_length = atoi(argv[b + 1]); b++;
+				break;
 			case 'c':
 				cmpopt |= 2;
 				break;
@@ -117,10 +199,13 @@ int main( int argc, char *argv[] )
 				ppopt = 1;
 				break;
 			case 'i':
-				cmpopt |= 0x100;
+				cmpopt |= MUCOM_CMPOPT_INFO;
 				break;
 			case 's':
 				scci_opt = 1;
+				break;
+			case 'x':
+				cmpopt |= MUCOM_CMPOPT_STEP;
 				break;
 			default:
 				st=1;break;
@@ -134,7 +219,10 @@ int main( int argc, char *argv[] )
 	//		call main
 	CMucom mucom;
 
-	mucom.Init();
+	if (cmpopt & 8) {
+		mucom.Init(NULL,cmpopt,RENDER_RATE);
+	} else
+		mucom.Init();
 
 	if (scci_opt) {
 		printf("Use SCCI.\n");
@@ -144,13 +232,14 @@ int main( int argc, char *argv[] )
 	mucom.Reset(cmpopt);
 	st = 0;
 
-	if (cmpopt & 0x100) {
+	if (cmpopt & MUCOM_CMPOPT_INFO) {
 		mucom.ProcessFile(fname);
 		mucom.PrintInfoBuffer();
 		puts(mucom.GetMessageBuffer());
 		return 0;
 	}
-	if (cmpopt & 2) {
+
+	if (cmpopt & MUCOM_CMPOPT_COMPILE) {
 		if (ppopt == 0) {
 			mucom.LoadPCM(pcmfile);
 		}
@@ -160,24 +249,30 @@ int main( int argc, char *argv[] )
 		if (mucom.CompileFile(fname, outfile) < 0) {
 			st = 1;
 		}
-	}
-	else {
+		// 現状はコンパイル時は再生できない
+		st = 1;
+	} else {
 		if (mucom.LoadMusic(fname) < 0) {
 			st = 1;
 		}
-		else {
-			mucom.Play(0);
-			mucom.PrintInfoBuffer();
-		}
 	}
+	mucom.PrintInfoBuffer();
 	puts(mucom.GetMessageBuffer());
 
 	if (st) return st;
 
-	if ((cmpopt & 2)==0) {
-		while (1) {
-			Sleep(20);
-		}
+	if (cmpopt & MUCOM_CMPOPT_COMPILE) {
+		mucom.Reset(0);
+		mucom.Stop();
+		mucom.PlayMemory();
+	} else {
+		if (mucom.Play(0) < 0) return -1;
+	}
+
+	if (cmpopt & MUCOM_CMPOPT_STEP) {
+		RecordWave(&mucom, song_length);
+	} else {
+		mucom.PlayLoop();
 	}
 
 	return 0;

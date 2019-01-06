@@ -10,6 +10,7 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 #include "cmucom.h"
 #include "mucomvm.h"
@@ -29,6 +30,7 @@
 #include "bin_voice.h"
 #include "bin_smon.h"
 
+#define AUDIO_RATE 55467 // Sampling Rate 55K
 
 #define PRINTF vm->Msgf
 
@@ -128,8 +130,11 @@ CMucom::~CMucom( void )
 	if (vm != NULL) delete vm;
 }
 
+void CMucom::PlayLoop() {
+	vm->PlayLoop();
+}
 
-void CMucom::Init(void *window, int option)
+void CMucom::Init(void *window, int option, int rate)
 {
 	//		MUCOM88の初期化(初回だけ呼び出してください)
 	//		window : 0   = ウインドウハンドル(HWND)
@@ -139,20 +144,25 @@ void CMucom::Init(void *window, int option)
 	vm = new mucomvm;
 	flag = 1;
 
+	// レート設定
+	if (rate == 0) rate = AUDIO_RATE;
+	AudioStep = (double)1000/rate;
+	AudioLeftMs = 0;
+
+
 	if (window != NULL) {
 		vm->SetWindow(window);
 	}
 	else {
 		//OleInitialize(NULL);
 	}
-	if (FAILED(CoInitializeEx(NULL, COINIT_APARTMENTTHREADED))) {
-		return;
-	}
+
+	vm->CoInitialize();
 	vm->SetOption(option);
-	vm->InitSoundSystem();
+	vm->InitSoundSystem(rate);
 	MusicBufferInit();
 
-	Mucom88Plugin_Init((HWND)window,vm,this);
+	Mucom88Plugin_Init(window,vm,this);
 }
 
 
@@ -225,14 +235,16 @@ void CMucom::Reset(int option)
 		vm->SendMem(bin_music2, 0xb000, music2_size);
 	}
 
+	vm->SetPlayFlag(true);
+
 	DeleteInfoBuffer();
 
-	int i,adr;
-	vm->InitChData(MUCOM_MAXCH,MUCOM_CHDATA_SIZE);
-	for (i = 0; i < MUCOM_MAXCH; i++){
-		adr = vm->CallAndHaltWithA(0xb00c, i);
-		vm->SetChDataAddress( i,adr );
-	}
+	//vm->LoadPcm("mucompcm.bin");
+	//vm->LoadMem("of7.muc", 0xc200, 0);
+	//vm->LoadMem("sampl1.muc", 0xc200, 0);
+	//vm->LoadMem("sampl2.muc", 0xc200, 0);
+	//vm->LoadMem("sampl3.muc", 0xc200, 0);
+	//vm->LoadMem("sc012.muc", 0xc200, 0);
 }
 
 void CMucom::SetUUID(char *uuid)
@@ -250,6 +262,23 @@ char *CMucom::GetMessageBuffer(void)
 	return vm->GetMessageBuffer();
 }
 
+// 時間を進めてレンダリングを行う
+void CMucom::RenderAudio(void *mix,int size) {
+	AudioLeftMs += size * AudioStep;
+	int ms = (int)AudioLeftMs;
+	if (ms > 0) UpdateTime(ms);
+	AudioLeftMs -= ms;
+
+	memset(mix, 0, size * 2 * sizeof(int));
+	vm->RenderAudio(mix,size);
+}
+
+// 時間のみ更新
+void CMucom::UpdateTime(int tick_ms) {
+	vm->UpdateTime(tick_ms);
+}
+
+
 int CMucom::Play(int num)
 {
 	//		MUCOM88音楽再生
@@ -265,7 +294,7 @@ int CMucom::Play(int num)
 
 	if ((num < 0) || (num >= MUCOM_MUSICBUFFER_MAX)) return -1;
 
-	Stop();
+	if (playflag) Stop();
 
 	LoadTagFromMusic(num);
 
@@ -291,21 +320,23 @@ int CMucom::Play(int num)
 	}
 
 	vm->SendMem((const unsigned char *)data, 0xc200, datasize);
-
 	PRINTF("#Play[%d]\r\n", num);
+	PlayMemory();
+	return 0;
+}
+
+void CMucom::PlayMemory() {
+	int jcount = vm->Peekw(0x8c90);		// JCLOCKの値(Jコマンドのタグ位置)
+
 	vm->CallAndHalt(0xb000);
 	//int vec = vm->Peekw(0xf308);
 	//PRINTF("#INT3 $%x.\r\n", vec);
 
-	vm->StartINT3();
+	vm->StartIN3();
 	vm->SetIntCount(0);
-
-	int jcount = hed->jumpcount;
 	vm->SkipPlay(jcount);
 
 	playflag = true;
-
-	return 0;
 }
 
 
@@ -343,12 +374,12 @@ int CMucom::Stop(int option)
 	//
 	playflag = false;
 	if (option & 1) {
-		vm->StopINT3();
+		vm->SetINT3Flag(false);
 		vm->CallAndHalt(0xb003);
 		vm->ResetFM();
 	}
 	else {
-		vm->StopINT3();
+		vm->SetINT3Flag(false);
 		vm->CallAndHalt(0xb003);
 	}
 	return 0;
@@ -406,10 +437,6 @@ int CMucom::LoadMusic(const char * fname, int num)
 		delete buf;
 		return -1;
 	}
-
-	if (musbuf[num] != NULL) {
-		delete musbuf[num];
-	}
 	musbuf[num] = buf;
 	//if (vm->LoadMem(fname, 0xc200, 0) >= 0) return 0;
 	return 0;
@@ -459,7 +486,7 @@ int CMucom::GetStatus(int option)
 	case MUCOM_STATUS_COUNT:
 		i = vm->GetIntCount();
 		if (maxcount) {
-			i = i % maxcount;
+			if (i >= maxcount) i = maxcount - 1;
 		}
 		return i;
 	case MUCOM_STATUS_MAXCOUNT:
@@ -616,7 +643,6 @@ int CMucom::ProcessHeader(char *text)
 			infobuf->PutCR();
 		}
 	}
-	infobuf->Put((char)0);
 	return 0;
 }
 
@@ -979,65 +1005,3 @@ void CMucom::SetFastFW(int value)
 {
 	vm->SetFastFW(value);
 }
-
-
-int CMucom::GetChannelData(int ch, PCHDATA *result)
-{
-	int i;
-	int size;
-	int *ptr;
-	unsigned char *src;
-	unsigned char *srcp;
-	bool ready = playflag;
-	if ((ch < 0) || (ch >= MUCOM_MAXCH)) ready = false;
-	if (!ready){
-		memset(result, 0, sizeof(PCHDATA));
-		return -1;
-	}
-
-	size = sizeof(PCHDATA)/sizeof(int);
-	src = (unsigned char *)vm->GetChData(ch);
-	srcp = src;
-	ptr = (int *)result;
-
-	if (src == NULL) return -1;
-
-	for (i = 0; i < size; i++){
-		*ptr++ = (int)*src++;
-	}
-
-	result->wadr = srcp[2] + (srcp[3] << 8);
-	result->tadr = srcp[4] + (srcp[5] << 8);
-	result->detune = srcp[9] + (srcp[10] << 8);
-	result->lfo_diff = srcp[23] + (srcp[24] << 8);
-
-	//	Check pan
-	int pan = 0;
-	unsigned char chwork;
-	switch (ch) {
-	case MUCOM_CH_PSG:
-	case MUCOM_CH_PSG+1:
-	case MUCOM_CH_PSG+2:
-	case MUCOM_CH_RHYTHM:
-		pan = 3;
-		break;
-	case MUCOM_CH_ADPCM:
-		chwork = vm->GetChWork(15);
-		pan = chwork & 3;
-		break;
-	default:
-		if (ch >= MUCOM_CH_FM2) {
-			chwork = vm->GetChWork(8 + 4 + (ch - MUCOM_CH_FM2));
-		}
-		else {
-			chwork = vm->GetChWork(8 + ch);
-		}
-		pan = (int)(chwork & 0xc0);
-		pan = pan >> 6;
-		break;
-	}
-	result->pan = pan;
-
-	return 0;
-}
-

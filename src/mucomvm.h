@@ -8,9 +8,8 @@
 #include <stdio.h>
 #include "Z80/Z80.h"
 #include "fmgen/opna.h"
-#include "soundds.h"
+#include "osdep.h"
 #include "membuf.h"
-#include "realchip.h"
 
 //#define DEBUGZ80_TRACE
 
@@ -21,6 +20,7 @@ enum {
 #define VM_OPTION_FMMUTE 1
 #define VM_OPTION_SCCI 2
 #define VM_OPTION_FASTFW 4
+#define VM_OPTION_STEP 8
 
 #define VMBANK_MAX 4
 #define VMBANK_SIZE 0x4000
@@ -37,14 +37,17 @@ public:
 	mucomvm();
 	~mucomvm();
 
+	// OS依存
+	void CoInitialize(void) { osd->CoInitialize(); }
+	void PlayLoop(void);
+
 	//		Z80コントロール
-	void InitSoundSystem(void);
+	void InitSoundSystem(int Rate);
 	void SetOption(int option);
 	int GetOption(void) { return m_option; }
 	void SetPC(uint16_t adr);
 	void CallAndHalt(uint16_t adr);
 	int CallAndHalt2(uint16_t adr, uint8_t code);
-	int CallAndHaltWithA(uint16_t adr, uint8_t areg);
 
 	//		仮想マシンコントロール
 	void Reset(void);
@@ -56,6 +59,7 @@ public:
 	int SaveMem(const char *fname,int adr, int size);
 	int SaveMemExpand(const char *fname, int adr, int size, char *header, int hedsize, char *footer, int footsize, char *pcm, int pcmsize);
 	char *LoadAlloc(const char *fname, int *sizeout);
+	void StartIN3(void);
 	void SetVolume(int fmvol, int ssgvol);
 	void SetFastFW(int value);
 	void SkipPlay(int count);
@@ -72,10 +76,10 @@ public:
 	void BackupMem(uint8_t *mem_bak);
 	void RestoreMem(uint8_t *mem_bak);
 
-	void StartINT3(void);
-	void StopINT3(void);
+	void SetINT3Flag(bool fl) { int3flag = fl; }
+	void SetPlayFlag(bool fl) { playflag = fl; }
 	void SetStreamTime(int time) { time_stream = time; }
-	void SetWindow(void *window) { master_window = (HWND)window; }
+	void SetWindow(void *window) { master_window = window; }
 	void SetIntCount(int value) { time_intcount = value; }
 	int GetIntCount(void) { return time_intcount; }
 	int GetPassTick(void) { return pass_tick; }
@@ -100,14 +104,15 @@ public:
 	void ClearBank(void);
 	void ChangeBank(int bank);
 
-	//		CHDATA用
-	void InitChData(int chmax, int chsize);
-	void SetChDataAddress(int ch, int adr);
-	uint8_t *GetChData(int ch);
-	uint8_t GetChWork(int index);
-	void ProcessChData(void);
+	// 
+	void RenderAudio(void *mix, int size);
+	void AudioCallback(void *mix, int size);
+	void UpdateTime(int tick);
+	void UpdateCallback(int tick);
 
 private:
+	int Rate;
+
 	//		Z80
 	int32_t load(uint16_t adr);
 	void store(uint16_t adr, uint8_t data);
@@ -124,10 +129,12 @@ private:
 	uint8_t mem[0x10000];				// メインメモリ
 	uint8_t vram[VMBANK_MAX][0x4000];	// GVRAM(3:退避/012=BRG)
 
+	// OS依存
+	OsDependent *osd;
+
 	//		音源
 	FM::OPNA *opn;
-	WinSoundDriver::DriverDS *snddrv;
-	HWND master_window;
+	void *master_window;
 
 	int sound_reg_select;
 	int sound_reg_select2;
@@ -141,47 +148,16 @@ private:
 	uint8_t chstat[OPNACH_MAX];
 	uint8_t regmap[OPNAREG_MAX];
 
-	//		CH情報スタック
-	int channel_max, channel_size;
-	uint16_t pchadr[64];
-	uint8_t *pchdata;
-	uint8_t pchwork[16];
-
 	//		タイマー
-	static void CALLBACK TimeProc(UINT, UINT, DWORD, DWORD, DWORD);
-	static DWORD WINAPI vThreadFunc(LPVOID pParam);
-
-	int StartThread(void);
-	int StopThread(void);
-	void UpdateTime(void);
 	void StreamSend(void);
-	void ThreadFunc(void);
 
-	UINT timer_period;
-	UINT timerid;
 	int time_master;
 	int time_stream;
 	int time_scount;
 	int time_intcount;
 	int time_interrupt;
 	int pass_tick;
-	int last_tick;
 
-	int64_t last_ft;
-
-	void resetElapsedTime(void);
-	int getElapsedTime(void);
-	void checkThreadBusy(void);
-
-	//__int64 ;
-
-	HANDLE hevent;
-	HANDLE hthread;
-	DWORD threadid;
-
-	LONG sending;
-	bool busyflag;
-	bool threadflag;
 	bool playflag;
 	bool int3flag;
 	int predelay;
@@ -190,9 +166,6 @@ private:
 
 	//		メッセージバッファ
 	CMemBuf *membuf;
-
-	//		実チップ対応
-	realchip *m_pChip;
 };
 
 #endif
