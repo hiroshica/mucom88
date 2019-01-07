@@ -235,6 +235,8 @@ void CMucom::Reset(int option)
 		vm->SendMem(bin_music2, 0xb000, music2_size);
 	}
 
+	vm->SetPlayFlag(true);
+
 	DeleteInfoBuffer();
 
 	int i,adr;

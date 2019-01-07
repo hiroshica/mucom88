@@ -75,6 +75,7 @@ public:
 	void PeekToStr(char *out, uint16_t adr, uint16_t length);
 	void BackupMem(uint8_t *mem_bak);
 	void RestoreMem(uint8_t *mem_bak);
+	void SetPlayFlag(bool fl) { playflag = fl; }
 
 	void StartINT3(void);
 	void StopINT3(void);
