@@ -189,6 +189,7 @@ void mucomvm::InitSoundSystem(int rate)
 	time_scount = 0;
 	time_intcount = 0;
 	time_interrupt = 10;
+	playflag = false;
 	//printf("#Stream update %dms.\n", time_stream);
 }
 
@@ -721,10 +722,10 @@ void mucomvm::StartINT3(void)
 {
 	//		INT3Š„‚è‚İ‚ğŠJn
 	//
-	if (int3flag) {
-		checkThreadBusy();
-	}
-	getElapsedTime();
+	// if (int3flag) {
+	// 	checkThreadBusy();
+	// }
+	// getElapsedTime();
 	SetIntCount(0);
 	predelay = 4;
 	int3flag = true;
@@ -735,9 +736,9 @@ void mucomvm::StopINT3(void)
 {
 	//		INT3Š„‚è‚İ‚ğ’â~
 	//
-	checkThreadBusy();
+	// checkThreadBusy();
 	SetIntCount(0);
-	getElapsedTime();
+	// getElapsedTime();
 	predelay = 4;
 }
 
