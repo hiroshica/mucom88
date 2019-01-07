@@ -38,6 +38,10 @@ mucomvm::mucomvm(void)
 	master_window = NULL;
 
 	osd = new OsDependent();
+	
+	channel_max = 0;
+	channel_size = 0;
+	pchdata = NULL;
 }
 
 mucomvm::~mucomvm(void)
@@ -55,6 +59,11 @@ mucomvm::~mucomvm(void)
 		opn = NULL;
 	}
 	if (membuf) delete membuf;
+
+	if (pchdata) {
+		free(pchdata);
+	}
+
 }
 
 
@@ -542,6 +551,22 @@ int mucomvm::CallAndHalt2(uint16_t adr,uint8_t code)
 }
 
 
+int mucomvm::CallAndHaltWithA(uint16_t adr, uint8_t areg)
+{
+	uint16_t tempadr = 0xf000;
+	uint8_t *p = mem + tempadr;
+	*p++ = 0x3e;				// ld a
+	*p++ = areg;
+	*p++ = 0xcd;				// Call
+	*p++ = (adr & 0xff);
+	*p++ = ((adr >> 8) & 0xff);
+	*p++ = 0x76;				// Halt
+	SetPC(tempadr);
+	ExecUntilHalt();
+	return (int)GetIX();
+}
+
+
 int mucomvm::LoadMem(const char *fname, int adr, int size)
 {
 	//	VMメモリにファイルをロード
@@ -692,15 +717,29 @@ int mucomvm::SaveMemExpand(const char *fname, int adr, int size, char *header, i
 }
 
 
-void mucomvm::StartIN3(void)
+void mucomvm::StartINT3(void)
 {
 	//		INT3割り込みを開始
 	//
-	SetINT3Flag( true );
+	if (int3flag) {
+		checkThreadBusy();
+	}
+	getElapsedTime();
 	SetIntCount(0);
 	predelay = 4;
+	int3flag = true;
 }
 
+
+void mucomvm::StopINT3(void)
+{
+	//		INT3割り込みを停止
+	//
+	checkThreadBusy();
+	SetIntCount(0);
+	getElapsedTime();
+	predelay = 4;
+}
 
 void mucomvm::SkipPlay(int count)
 {
@@ -736,7 +775,6 @@ void mucomvm::UpdateTime(int pass_tick)
 	time_master += pass_tick;//timer_period;
 	time_scount += pass_tick;//timer_period;
 
-#if 1
 	if (int3mask & 128) int3_mode = false;		// 割り込みマスク
 
 	if (opn->Count(base)) {
@@ -745,13 +783,16 @@ void mucomvm::UpdateTime(int pass_tick)
 			if (predelay == 0) {
 				int times = 1;
 				if (m_option & VM_OPTION_FASTFW) times = m_fastfw;
+				busyflag = true;				// Z80VMの2重起動を防止する
 				while (1) {
 					if (times <= 0) break;
-					int vec = Peekw(0xf308);		// INT3 vectorを呼び出す
+					int vec = Peekw(0xf308);	// INT3 vectorを呼び出す
 					CallAndHalt(vec);
 					times--;
 					time_intcount++;
 				}
+				busyflag = false;
+				ProcessChData();
 			}
 			else {
 				predelay--;
@@ -768,12 +809,6 @@ void mucomvm::UpdateTime(int pass_tick)
 			time_scount = 0;
 		}
 	}
-#else
-	if (time_scount > 16) {
-		stream_event = true;
-		time_scount = 0;
-	}
-#endif
 
 	if (stream_event) {
 		stream_event = false;
@@ -935,6 +970,89 @@ int mucomvm::ConvertWAVtoADPCMFile(const char *fname, const char *sname)
 	}
 	delete[] dstbuffer;
 	return res;
+}
+
+
+/*------------------------------------------------------------*/
+/*
+Channel Data
+*/
+/*------------------------------------------------------------*/
+
+void mucomvm::InitChData(int chmax, int chsize)
+{
+	if (pchdata) {
+		free(pchdata);
+	}
+	channel_max = chmax;
+	channel_size = chsize;
+	pchdata = (uint8_t *)malloc(channel_max*channel_size);
+	memset(pchdata, 0, channel_max*channel_size);
+}
+
+
+void mucomvm::SetChDataAddress(int ch, int adr)
+{
+	if ((ch < 0) || (ch >= channel_max)) return;
+	pchadr[ch] = (uint16_t)adr;
+}
+
+
+uint8_t *mucomvm::GetChData(int ch)
+{
+	uint8_t *p = pchdata;
+	if ((ch < 0) || (ch >= channel_max)) return NULL;
+	if (pchdata) {
+		return p + (ch*channel_size);
+	}
+	return NULL;
+}
+
+
+uint8_t mucomvm::GetChWork(int index)
+{
+	if ((index < 0) || (index >= 16)) return 0;
+	return pchwork[index];
+}
+
+
+void mucomvm::ProcessChData(void)
+{
+	int i;
+	uint8_t *src;
+	uint8_t *dst;
+	uint8_t code;
+	uint8_t keyon;
+	if (pchdata==NULL) return;
+	if (channel_max == 0) return;
+	for (i = 0; i < channel_max; i++){
+		src = mem + pchadr[i];
+		dst = pchdata + (channel_size*i);
+		if (src[0] > dst[0]) {						// lebgthが更新された
+			keyon = 0;
+			code = src[32];
+			if (i == 10) {
+				keyon = src[1];						// PCMchは音色No.を入れる
+			}
+			else if ( i == 6) {
+				keyon = mem[ pchadr[10] + 38 ];		// rhythmのワーク値を入れる
+			}
+			else {
+				if (code != dst[32]) {
+					keyon = ((code >> 4) * 12) + (code & 15);	// 正規化したキーNo.
+				}
+
+			}
+			src[37] = keyon;						// keyon情報を付加する
+		}
+		else {
+			if (src[0] < src[18]) {				// quantize切れ
+				src[37] = 0;						// keyon情報を付加する
+			}
+		}
+		memcpy(dst, src , channel_size);
+	}
+	memcpy( pchwork, mem + pchadr[0] - 16, 16 );	// CHDATAの前にワークがある
 }
 
 
