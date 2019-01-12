@@ -20,6 +20,8 @@
 
 #ifdef MUCOM88WIN
 #include "win32/osdep_win.h"		// ‚Æ‚è‚ ‚¦‚¸‰¼ì¬’†
+#else
+#include "dummy/osdep_dummy.h"
 #endif
 
 /*------------------------------------------------------------*/
@@ -151,10 +153,15 @@ void mucomvm::InitSoundSystem(int rate)
 	playflag = false;
 	predelay = 0;
 
+	// OSˆË‘¶•”•ª
 #ifdef MUCOM88WIN
 	{
 		OsDependentWin32 *osdwin32 = new OsDependentWin32();
 		osd = osdwin32;
+	}
+#else
+	{
+		osd = new OsDependentDummy();
 	}
 #endif
 

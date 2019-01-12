@@ -179,7 +179,7 @@ int OsDependentWin32::StartThread(void)
 	// イベントオブジェクトを作成する
 	hevent = CreateEvent(NULL, FALSE, FALSE, NULL);
 	// スレッドを生成する
-	hthread = CreateThread(NULL, 0x40000, (LPTHREAD_START_ROUTINE)OsDependentWin32::vThreadFunc, (LPVOID)this, NULL, &threadid);
+	hthread = CreateThread(NULL, 0x40000, (LPTHREAD_START_ROUTINE)OsDependentWin32::vThreadFunc, (LPVOID)this, 0, &threadid);
 	if (hthread == NULL) {
 		return -1;
 	}

@@ -42,6 +42,7 @@ TestClass::TestClass() {
 #else
     osd = new OsDependentDummy();
 #endif
+
     osd->CoInitialize();
 }
 
