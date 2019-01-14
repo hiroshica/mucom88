@@ -4,3 +4,6 @@ src/mucom88.exe
 src/mucom88_d.exe
 src/osdep_test.exe
 src/mod_test.exe
+src/stderr.txt
+src/stdout.txt
+src/miniplay.exe
