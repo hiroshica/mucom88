@@ -57,7 +57,6 @@ public:
     bool AudioOpenFlag;
 
 private:
-    bool QuitEvent;
 	void *TimerId;
 };
 

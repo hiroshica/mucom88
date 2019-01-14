@@ -30,7 +30,7 @@
 
 static void usage1( void )
 {
-static 	char *p[] = {
+static const char *p[] = {
 	"usage: mucom88 [options] [filename]",
 	"       -p [filename] setload PCM file name",
 	"       -v [filename] set load voice file name",
@@ -59,10 +59,10 @@ int main( int argc, char *argv[] )
 	int cmpopt,ppopt;
 	int scci_opt;
 	char fname[1024];
-	char *pcmfile;
-	char *outfile;
-	char *wavfile;
-	char *voicefile;
+	const char *pcmfile;
+	const char *outfile;
+	const char *wavfile;
+	const char *voicefile;
 
 #if defined(USE_SDL) && defined(_WIN32)
 	freopen( "CON", "w", stdout );
