@@ -1,33 +1,37 @@
 #
 # Makefile for mucom88
 #
-
-EXE_SUFFIX = .exe
+# make test ... test生成
+# make mini ... miniplay生成
+#
 
 CXX = g++
 CC = gcc
 CFLAGS = 
 CXXFLAGS = -Wno-write-strings
+CXXFLAGS += -Wno-invalid-source-encoding
 COMMON_FLAGS = 
 LDFLAGS = 
 DEFINES = 
 OBJS_DIR = objs
 TARGET_NAME = mucom88
-TARGET = $(TARGET_NAME)$(EXE_SUFFIX)
 LIBS =
 EXT_LIBS =
 
+# 設定ファイル
+include Makefile.setting
+
 #
+ifeq ($(WIN32),1)
+EXE_SUFFIX = .exe
+else
+EXE_SUFFIX =
+endif
+TARGET = $(TARGET_NAME)$(EXE_SUFFIX)
 TARGET_MODTEST = mod_test$(EXE_SUFFIX)
 TARGET_DEPTEST = dep_test$(EXE_SUFFIX)
 TARGET_MINIPLAY = miniplay$(EXE_SUFFIX)
 
-# SDL使用
-OS_SDL = 1
-SDL_WIN32 = 1
-
-# Win32ネイティブ
-OS_WIN32 = 0
 
 ifeq ($(DEBUG),1)
 TARGET = $(TARGET_NAME)_d$(EXE_SUFFIX)
@@ -36,11 +40,11 @@ COMMON_FLAGS = -O0 -g
 OBJS_DIR = objs_d
 endif
 
-.PHONY: all test $(OBJS_DIR)
+.PHONY: all test makedir $(OBJS_DIR)
 
 all: makedir $(TARGET)
 test: makedir $(TARGET_DEPTEST) $(TARGET_MODTEST)
-miniplay: makedir $(TARGET_MINIPLAY)
+mini: makedir $(TARGET_MINIPLAY)
 
 
 DIRS = z80 fmgen plugin module tests
@@ -88,6 +92,7 @@ LIBS += -lole32 -lwinmm -luuid
 LIBS += -ldsound -ldxguid
 LIBS += -static -lstdc++
 LIBS += -mconsole
+
 # SDL
 else ifeq ($(OS_SDL),1)
 DIRS += sdl
@@ -98,7 +103,11 @@ DEP_SRCS += sdl/audiotime.cpp
 SDL_CFLAGS = $(shell sdl-config --cflags) -DUSE_SDL
 COMMON_FLAGS += $(SDL_CFLAGS)
 
+ifeq ($(STATIC),1)
+SDL_LIBS =  $(shell sdl-config --static-libs)
+else
 SDL_LIBS =  $(shell sdl-config --libs)
+endif
 
 ifeq ($(SDL_WIN32),1)
 LIB_STATIC =  -Wl,-Bstatic -lstdc++ -lgcc -lpthread -Wl,-Bdynamic
@@ -146,12 +155,11 @@ DEPTEST_OBJS = $(addprefix $(OBJS_DIR)/,$(addsuffix .o,$(DEPTEST_SRCS_BASE)))
 MINIPLAY_SRCS_BASE = $(basename $(MINIPLAY_SRCS))
 MINIPLAY_OBJS = $(addprefix $(OBJS_DIR)/,$(addsuffix .o,$(MINIPLAY_SRCS_BASE)))
 
-
-
 INCLUDES += -I. $(addprefix -I,$(DIRS) )
 
-COMMON_FLAGS += $(DEFINES) $(INCLUDES)
 
+
+COMMON_FLAGS += $(DEFINES) $(INCLUDES)
 CFLAGS += $(COMMON_FLAGS)
 CXXFLAGS += $(COMMON_FLAGS)
 
@@ -171,7 +179,7 @@ $(TARGET_MINIPLAY) : $(OBJS) $(MOD_OBJS) $(MINIPLAY_OBJS)
 $(TARGET) : $(MAIN_OBJS) $(OBJS)
 	$(CXX) $(LDFLAGS) -o $@ $^ $(LIBS)
 
-makedir : $(OBJS_DIR)
+makedir :
 	mkdir -p $(OBJS_DIR) $(addprefix $(OBJS_DIR)/,$(DIRS))
 
 $(OBJS_DIR)/%.o : %.cpp

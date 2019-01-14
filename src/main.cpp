@@ -64,9 +64,9 @@ int main( int argc, char *argv[] )
 	char *wavfile;
 	char *voicefile;
 
-#ifdef USE_SDL
-    freopen( "CON", "w", stdout );
-    freopen( "CON", "w", stderr );
+#if defined(USE_SDL) && defined(_WIN32)
+	freopen( "CON", "w", stdout );
+	freopen( "CON", "w", stderr );
 #endif
 
 	//	check switch and prm

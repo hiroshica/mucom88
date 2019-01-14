@@ -86,8 +86,8 @@ void Player::Stop() {
 
 int main(int argc,char *argv[]) {
 #if defined(USE_SDL) && defined(_WIN32)
-    freopen( "CON", "w", stdout );
-    freopen( "CON", "w", stderr );
+    freopen("CON", "w", stdout);
+    freopen("CON", "w", stderr );
 #endif
     printf("MUCOM88 miniplay\n");
     if (argc < 2) {
@@ -97,4 +97,5 @@ int main(int argc,char *argv[]) {
     Player *p = new Player();
     p->Play(argv[1]);
     p->Stop();
+    return 0;
 }
