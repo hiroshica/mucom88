@@ -1196,4 +1196,3 @@ int CMucom::GetChannelData(int ch, PCHDATA *result)
 
 	return 0;
 }
-

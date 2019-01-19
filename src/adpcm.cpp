@@ -204,4 +204,3 @@ int Adpcm::encode(short *pSrc,unsigned char *pDis,DWORD iSampleSize){
 	}
 	return 0;
 }
-

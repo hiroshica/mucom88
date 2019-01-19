@@ -1,0 +1,234 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="リソース ファイル">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="fmgen">
+      <UniqueIdentifier>{45c9195a-759c-42f4-94e7-f18593ca1233}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="basesrc">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="baseheader">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="mucom88">
+      <UniqueIdentifier>{9917931e-8b3d-4c29-b89e-8b9357927c36}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Z80">
+      <UniqueIdentifier>{b9109222-8afa-49d2-ab2b-c05e9854335e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="basicsrcs">
+      <UniqueIdentifier>{16fbaf6f-beb0-4c83-a154-2d148d6ebe5b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="plugin">
+      <UniqueIdentifier>{6ac9c972-2142-4cb2-8ef4-af1f26704207}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="win32">
+      <UniqueIdentifier>{e32b9f56-c688-4aea-a5d3-0e712e0d4520}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="stdafx.h">
+      <Filter>baseheader</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>baseheader</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\fmgen\diag.h">
+      <Filter>fmgen</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\fmgen\file.h">
+      <Filter>fmgen</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\fmgen\fmgen.h">
+      <Filter>fmgen</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\fmgen\fmgeninl.h">
+      <Filter>fmgen</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\fmgen\fmtimer.h">
+      <Filter>fmgen</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\fmgen\headers.h">
+      <Filter>fmgen</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\fmgen\misc.h">
+      <Filter>fmgen</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\fmgen\opm.h">
+      <Filter>fmgen</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\fmgen\opna.h">
+      <Filter>fmgen</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\fmgen\psg.h">
+      <Filter>fmgen</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\adpcm.h">
+      <Filter>mucom88</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\callback.h">
+      <Filter>mucom88</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cmucom.h">
+      <Filter>mucom88</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\md5.h">
+      <Filter>mucom88</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\membuf.h">
+      <Filter>mucom88</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\mucom88config.h">
+      <Filter>mucom88</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\mucomerror.h">
+      <Filter>mucom88</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\mucomvm.h">
+      <Filter>mucom88</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\osdep.h">
+      <Filter>mucom88</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\soundbuf.h">
+      <Filter>mucom88</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\wavout.h">
+      <Filter>mucom88</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\Z80\Z80.h">
+      <Filter>Z80</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\bin_errmsg.h">
+      <Filter>basicsrcs</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\bin_expand.h">
+      <Filter>basicsrcs</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\bin_msub.h">
+      <Filter>basicsrcs</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\bin_muc88.h">
+      <Filter>basicsrcs</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\bin_music2.h">
+      <Filter>basicsrcs</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\bin_ssgdat.h">
+      <Filter>basicsrcs</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\bin_time.h">
+      <Filter>basicsrcs</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\bin_voice.h">
+      <Filter>basicsrcs</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\fmgen\types.h">
+      <Filter>basicsrcs</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\plugin\mucom88if.h">
+      <Filter>plugin</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\plugin\plugin.h">
+      <Filter>plugin</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\win32\osdep_win.h">
+      <Filter>win32</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\win32\realchip.h">
+      <Filter>win32</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\win32\scci.h">
+      <Filter>win32</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\win32\SCCIDefines.h">
+      <Filter>win32</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\win32\soundds.h">
+      <Filter>win32</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>basesrc</Filter>
+    </ClCompile>
+    <ClCompile Include="mucom88dll.cpp">
+      <Filter>basesrc</Filter>
+    </ClCompile>
+    <ClCompile Include="dllmain.cpp">
+      <Filter>basesrc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\fmgen\file.cpp">
+      <Filter>fmgen</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\fmgen\fmgen.cpp">
+      <Filter>fmgen</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\fmgen\fmtimer.cpp">
+      <Filter>fmgen</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\fmgen\opm.cpp">
+      <Filter>fmgen</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\fmgen\opna.cpp">
+      <Filter>fmgen</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\fmgen\psg.cpp">
+      <Filter>fmgen</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\adpcm.cpp">
+      <Filter>mucom88</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\callback.cpp">
+      <Filter>mucom88</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cmucom.cpp">
+      <Filter>mucom88</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\md5.c">
+      <Filter>mucom88</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\membuf.cpp">
+      <Filter>mucom88</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\mucomerror.cpp">
+      <Filter>mucom88</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\mucomvm.cpp">
+      <Filter>mucom88</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\osdep.cpp">
+      <Filter>mucom88</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\soundbuf.cpp">
+      <Filter>mucom88</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\wavout.cpp">
+      <Filter>mucom88</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Z80\Z80.cpp">
+      <Filter>Z80</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\main.cpp">
+      <Filter>basicsrcs</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\plugin\plugin.cpp">
+      <Filter>plugin</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\win32\osdep_win.cpp">
+      <Filter>win32</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\win32\realchip.cpp">
+      <Filter>win32</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\win32\soundds.cpp">
+      <Filter>win32</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

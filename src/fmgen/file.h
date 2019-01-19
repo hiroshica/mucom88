@@ -47,7 +47,7 @@ public:
 
 	int32 Read(void* dest, int32 len);
 	int32 Write(const void* src, int32 len);
-	bool Seek(int32 fpos, SeekMethod method);
+	int32 Seek(int32 fpos, SeekMethod method);
 	int32 Tellp();
 	bool SetEndOfFile();
 

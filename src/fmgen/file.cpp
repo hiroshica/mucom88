@@ -119,27 +119,28 @@ int32 FileIO::Write(const void* dest, int32 size)
 //	ファイルをシーク
 // ---------------------------------------------------------------------------
 
-bool FileIO::Seek(int32 pos, SeekMethod method)
+int32 FileIO::Seek(int32 pos, SeekMethod method)
 {
+	int32 retcode = -1;
     if (!fp)
-        return -1;
+        return retcode;
     
     switch (method)
     {
     case begin:	
-        fseek(fp, pos, SEEK_SET);
+        retcode = fseek(fp, pos, SEEK_SET);
         break;
     case current:
-        fseek(fp, pos, SEEK_CUR);
+        retcode = fseek(fp, pos, SEEK_CUR);
         break;
     case end:		
-        fseek(fp, pos, SEEK_END);
+        retcode = fseek(fp, pos, SEEK_END);
         break;
     default:
-        return false;
-    }
+		break;
+	}
 
-    return true;
+    return retcode;
 }
 
 // ---------------------------------------------------------------------------

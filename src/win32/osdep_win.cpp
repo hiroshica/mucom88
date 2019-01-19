@@ -27,7 +27,11 @@ void Alertf(const char *format, ...)
 	va_start(args, format);
 	vsprintf(textbf, format, args);
 	va_end(args);
-	MessageBox(NULL, textbf, "error", MB_ICONINFORMATION | MB_OK);
+#ifndef __MUCOM_DLL__
+	MessageBox(NULL, (LPCSTR)textbf, (LPCSTR)"error", MB_ICONINFORMATION | MB_OK);
+#else
+	MessageBox(NULL, (LPCWSTR)textbf, (LPCWSTR)"error", MB_ICONINFORMATION | MB_OK);
+#endif
 }
 
 /*-------------------------------------------------------------------------------*/
@@ -133,7 +137,11 @@ bool OsDependentWin32::InitTimer() {
 		//	Ž¸”s‚µ‚½Žž
 		timer_period = -1;
 		timerid = 0;
-		MessageBox(NULL, "Unable to start timer.", "Error", 0);
+#ifndef __MUCOM_DLL__
+		MessageBox(NULL, (LPCSTR)"Unable to start timer.", (LPCSTR)"Error", 0);
+#else
+		MessageBox(NULL, (LPCWSTR)"Unable to start timer.", (LPCWSTR)"Error", 0);
+#endif
 	}
 
 	return false;

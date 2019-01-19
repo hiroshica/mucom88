@@ -498,4 +498,3 @@ void OPM::Mix(Sample* buffer, int nsamples)
 }
 
 }	// namespace FM
-

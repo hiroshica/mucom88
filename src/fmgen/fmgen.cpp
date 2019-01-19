@@ -410,7 +410,7 @@ void Operator::Prepare()
 		// SSG-EG
 		if (ssg_type_ && (eg_phase_ != release))
 		{
-			int m = ar_ >= ((ssg_type_ == 8 || ssg_type_ == 12) ? 56 : 60);
+			int m = (int32)ar_ >= ((ssg_type_ == 8 || ssg_type_ == 12) ? 56 : 60);
 
 			assert(0 <= ssg_phase_ && ssg_phase_ <= 2);
 			const int* table = ssgenvtable[ssg_type_ & 7][m][ssg_phase_];
@@ -438,7 +438,7 @@ void Operator::ShiftPhase(EGPhase nextphase)
 			if (ssg_phase_ > 2)
 				ssg_phase_ = 1;
 			
-			int m = ar_ >= ((ssg_type_ == 8 || ssg_type_ == 12) ? 56 : 60);
+			int m = (int32)ar_ >= ((ssg_type_ == 8 || ssg_type_ == 12) ? 56 : 60);
 
 			assert(0 <= ssg_phase_ && ssg_phase_ <= 2);
 			const int* table = ssgenvtable[ssg_type_ & 7][m][ssg_phase_];

@@ -18,7 +18,11 @@ realchip::~realchip()
 void realchip::Initialize()
 {
 	// SCCIÇì«Ç›çûÇﬁ
+#ifndef __MUCOM_DLL__
 	m_hScci = ::LoadLibrary((LPCSTR)"scci.dll");
+#else
+	m_hScci = ::LoadLibrary((LPCWSTR)"scci.dll");
+#endif
 	if (m_hScci == NULL) {
 		return;
 	}

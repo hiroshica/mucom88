@@ -1,3 +1,8 @@
+*/Debug/*
+*/Release/*
+*/x64/*
+*/.vs/*
+
 *.user
 src/objs_d
 src/objs

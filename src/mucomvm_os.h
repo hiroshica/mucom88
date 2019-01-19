@@ -1,4 +1,4 @@
-
+﻿
 #ifdef MUCOM88WIN
 #include "win32/osdep_win.h"		// とりあえず仮作成中
 #define OSDEP_CLASS OsDependentWin32

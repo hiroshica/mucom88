@@ -1,4 +1,4 @@
-// OsDependent 
+﻿// OsDependent 
 // BouKiCHi 2019
 
 #ifndef _OS_DEP_DUMMY_H_
