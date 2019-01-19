@@ -13,19 +13,8 @@
 #define DLLTEST_API __declspec(dllimport)
 #endif
 
+	DLLTEST_API INT32 __stdcall Mucom88CoreCreateVM();
+	DLLTEST_API bool __stdcall Mucom88CoreRemoveVM(INT32 index = -1);
 
-	class Mucom88Core {
-	public :
-		static CMucom *m_MucomVM[kCreateMax];
-		static INT32 m_LatestSelectNo;
-
-		static DLLTEST_API INT32 CreateVM();   // 返り値 -1 = error : 0 > インデックス番号
-		// index -1 = 最後に選択していたVM
-		static DLLTEST_API bool RemoveVM(INT32 index = -1);
-		static DLLTEST_API void Init(INT32 index = -1, INT32 option = 0);
-		static DLLTEST_API void Reset(INT32 index = -1, INT32 option = 0);
-
-	private:
-		static INT32 checkindex(INT32 index);
-
-	};
+	DLLTEST_API void __stdcall Mucom88CoreInit(INT32 index = -1, INT32 option = 0);
+	DLLTEST_API void __stdcall Mucom88CoreReset(INT32 index = -1, INT32 option = 0);

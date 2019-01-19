@@ -19,7 +19,7 @@ namespace testmain
 
         private void button1_Click(object sender, EventArgs e)
         {
-            int getindex = Mucom88Dll.CreateVM();
+            int getindex = Mucom88Dll.Mucom88CoreCreateVM();
         }
     }
 }

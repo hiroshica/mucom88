@@ -8,10 +8,10 @@
 
 int main()
 {
-	int index = Mucom88Core::CreateVM();
-	Mucom88Core::Init();
-	Mucom88Core::Reset();
-	Mucom88Core::RemoveVM();
+	int index = Mucom88CoreCreateVM();
+	Mucom88CoreInit();
+	Mucom88CoreReset();
+	Mucom88CoreRemoveVM();
 
     std::cout << "Hello World!\n";
 }
