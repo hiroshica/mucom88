@@ -12,6 +12,8 @@ namespace testmain
 {
     public partial class Form1 : Form
     {
+        int getindex;
+
         public Form1()
         {
             InitializeComponent();
@@ -19,7 +21,10 @@ namespace testmain
 
         private void button1_Click(object sender, EventArgs e)
         {
-            int getindex = Mucom88Dll.Mucom88CoreCreateVM();
+            getindex = Mucom88Dll.Mucom88CoreCreateVM();
+            Mucom88Dll.Mucom88CoreInit(getindex);
+            Mucom88Dll.Mucom88CoreReset(getindex);
+            Mucom88Dll.Mucom88CoreRemoveVM();
         }
     }
 }

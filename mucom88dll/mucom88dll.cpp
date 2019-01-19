@@ -1,11 +1,8 @@
-﻿// mucom88dll.cpp : DLL アプリケーション用にエクスポートされる関数を定義します。
-//
-
-#include "stdafx.h"
+﻿#include "stdafx.h"
 
 #include "mucom88dll.h"
 
-
+extern "C" {
 
 	CMucom *m_MucomVM[kCreateMax];
 	INT32 m_LatestSelectNo;
@@ -58,3 +55,4 @@
 		index = checkindex(index);
 		m_MucomVM[index]->Reset(option);
 	}
+}
