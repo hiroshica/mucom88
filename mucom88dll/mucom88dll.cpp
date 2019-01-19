@@ -6,7 +6,9 @@
 #include "mucom88dll.h"
 
 
-namespace Mucom88_DLL{
+CMucom *Mucom88Core::m_MucomVM[kCreateMax];
+INT32 Mucom88Core::m_LatestSelectNo;
+
 
 	INT32 Mucom88Core::CreateVM() {
 		for (INT32 index = 0; index < kCreateMax; ++index) {
@@ -52,8 +54,6 @@ namespace Mucom88_DLL{
 		m_MucomVM[index]->Init(NULL, option, 0);
 	}
 	void Mucom88Core::Reset(INT32 index, INT32 option) {
-		INT32 gindex = checkindex(index);
+		index = checkindex(index);
 		m_MucomVM[index]->Reset(option);
 	}
-
-}
