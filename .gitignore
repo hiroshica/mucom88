@@ -1,3 +1,4 @@
+*.user
 src/objs_d
 src/objs
 src/stderr.txt
